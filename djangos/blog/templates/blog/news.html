@@ -5,10 +5,7 @@
     <title>My Blog</title>
 </head>
 <body>
-<h1><a href="">新建</a></h1>
-{% for one in news %}
-<a href="/blog/news/{{one.id}}">{{one.title}}</a>
-<br />
-{% endfor %}
+<h1>{{ news.title }}</h1>
+<h2>{{ news.content }}</h2>
 </body>
 </html>

@@ -1,6 +1,13 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-# Create your views here.
+from . import models
+
 
 def index(request):
-    return render(request, 'blog/index.html', {'hello':'Hello, Jeffrey'})
+    news = models.News.objects.all()
+    return render(request, 'blog/index.html', {'news': news})
+
+
+def news(request, id):
+    news = models.News.objects.get(pk=id)
+    return render(request, 'blog/news.html', {'news': news})
