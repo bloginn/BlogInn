@@ -2,6 +2,10 @@
 
 import pycurl
 import sys
+import urllib
+import platform
+import subprocess
+import os
 
 try:
     # Python 3
@@ -36,7 +40,11 @@ class Curl:
             result['status'] = error[0]
             result['error'] = error[1]
 
-        result['body'] = buffer_body.getvalue().decode('utf-8')
+        if type == 'download':
+            result['body'] = buffer_body.getvalue()
+        else:
+            result['body'] = buffer_body.getvalue().decode('utf-8')
+
         result['header'] = self.__parse_header(buffer_header.getvalue().decode('utf-8'))
         buffer_body.close()
         buffer_header.close()
@@ -58,5 +66,20 @@ class Curl:
     def post(self, url, data=None, timeout=10, header=None):
         return self.__request(url, 'post', data, timeout, header)
 
-    def download(self):
-        return
+    def download(self, url, savePath='./'):
+        if platform.system() == 'Linux':
+            header = 'User-Agent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1;)'
+            cmd = 'wget -O %s --header="%s" %s' % (savePath, header, url)
+            subprocess.call(cmd, shell=True)
+            if os.path.getsize(savePath) == 0:
+                os.remove(savePath)
+        else:
+            continueDownload = True
+            while (continueDownload):
+                try:
+                    urllib.urlretrieve(url, savePath)
+                    continueDownload = False
+                except urllib.ContentTooShortError:
+                    continueDownload = True
+
+        return True
