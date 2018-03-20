@@ -7,6 +7,7 @@ import json
 import os
 import time
 import shutil
+import sys
 
 rootPath = 'D:\\ted'
 
@@ -14,7 +15,7 @@ rootPath = 'D:\\ted'
 def log(str):
     dt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     log = dt + ' ' + str
-    saveContent(os.path.join(rootPath, 'ted.log'), log + '\r\n', True)
+    saveContent(os.path.join(rootPath, 'ted.log'), log + os.linesep, True)
     print(log)
     return
 
@@ -102,14 +103,32 @@ def requestText(id, lan='en'):
     return text
 
 
-def saveContent(filename, content, append=False):
-    if append:
+def saveContent(filename, content=None, append=False):
+    if not content or append:
         mode = 'a+'
     else:
         mode = 'w+'
     f = open(filename, mode)
-    f.write(str(content))
-    f.close()
+    if content:
+        f.write(str(content))
+        f.close()
+        return True
+    else:
+        content = f.read()
+        f.close()
+        return content
+
+
+def existUri(uri, save=False):
+    filename = os.path.join(rootPath, 'ted.uri')
+    if save:
+        return saveContent(filename, uri + os.linesep, True)
+    else:
+        uris = saveContent(filename)
+        for one in uris.splitlines():
+            if one.find(uri) != -1:
+                return True
+        return False
 
 
 def downloadOne(uri, rootPath='./'):
@@ -167,10 +186,13 @@ def downloadOne(uri, rootPath='./'):
         log('ID' + str(id) + "下载完成")
 
 
-# downloadOne('/talks/petter_johansson_do_you_really_know_why_you_do_what_you_do',"C:/Users/zongbinghuang.ESG/Downloads/ted")
-
-page = 2
+page = sys.argv[1]
 log("开始处理page" + str(page))
 for one in requestList(page):
-    downloadOne(one, rootPath)
-    time.sleep(60)
+    if existUri(one):
+        log("已经下载URI:" + str(one))
+    else:
+        log("开始下载URI:" + str(one))
+        downloadOne(one, rootPath)
+        existUri(one, True)
+    time.sleep(10)
